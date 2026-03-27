@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Academy — TruVolt Brands Video Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══ RESET & ROOT ═══════════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --orange:   #FF6600;
+  --charcoal: #333333;
+  --char-dk:  #1e1e1e;
+  --char-md:  #2a2a2a;
+  --char-lt:  #3e3e3e;
+  --char-xl:  #4a4a4a;
+  --sj-blue:  #1946BA;
+  --aq-blue:  #00B2CE;
+  --sg-green: #C3CF21;
+  --white:    #FFFFFF;
+  --off-white:#F0F0F0;
+  --muted:    #888888;
+  --muted-lt: #aaaaaa;
+  --vid-h:    520px;
+}
+
+html, body { height:100%; overflow:hidden; background:#111; font-family:'Barlow', sans-serif; color:var(--white); }
+
+/* ═══ LAYOUT ═════════════════════════════════════════════════════ */
+.app { display:flex; height:100vh; width:100vw; overflow:hidden; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--char-dk);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.brand-tag {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 3px;
+}
+
+.sidebar-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.1;
+}
+
+.progress-section {
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.progress-track {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--orange);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.chapters-label {
+  padding: 10px 18px 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.chapters { flex: 1; overflow-y: auto; padding-bottom: 12px; }
+.chapters::-webkit-scrollbar { width: 4px; }
+.chapters::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.chapter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+.chapter-item:hover { background: rgba(255,255,255,0.04); }
+.chapter-item.active {
+  border-left-color: var(--orange);
+  background: rgba(255,102,0,0.08);
+}
+.chapter-item.done .ch-num { background: var(--sg-green); color: var(--charcoal); }
+
+.ch-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--char-lt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.chapter-item.active .ch-num { background: var(--orange); color: var(--white); }
+
+.ch-info { flex: 1; min-width: 0; }
+.ch-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chapter-item.active .ch-title { color: var(--white); font-weight: 600; }
+.ch-dur { font-size: 10px; color: var(--muted); }
+
+/* ── Main video area ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--char-dk); }
+
+/* Video stage */
+.stage-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--charcoal);
+  min-height: 0;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  padding: 28px 36px 16px;
+  overflow: hidden;
+}
+.scene.active { opacity: 1; pointer-events: all; }
+
+/* Scene backgrounds */
+.scene-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ═══ SCENE CONTENT STYLES ═══════════════════════════════════════ */
+
+/* Ghost letters bg element */
+.ghost-letter {
+  position: absolute;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  color: rgba(255,255,255,0.03);
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+}
+
+.scene-content { position: relative; z-index: 1; width: 100%; max-width: 860px; }
+
+/* Scene type: TITLE */
+.scene-title-wrap {
+  text-align: left;
+  width: 100%;
+}
+.scene-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 10px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.5s ease 0.1s;
+}
+.scene-headline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(42px, 6vw, 70px);
+  font-weight: 800;
+  line-height: 1.0;
+  color: var(--white);
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: all 0.5s ease 0.25s;
+}
+.scene-sub {
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.6;
+  max-width: 560px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.5s ease 0.4s;
+}
+.scene.active .scene-eyebrow,
+.scene.active .scene-headline,
+.scene.active .scene-sub { opacity:1; transform:translateY(0); }
+
+/* Orange rule */
+.orule {
+  width: 52px;
+  height: 4px;
+  background: var(--orange);
+  border-radius: 99px;
+  margin: 14px 0;
+  opacity: 0;
+  transition: all 0.5s ease 0.35s;
+}
+.scene.active .orule { opacity: 1; }
+
+/* Accent badge */
+.accent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,102,0,0.15);
+  border: 1px solid rgba(255,102,0,0.35);
+  color: var(--orange);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 99px;
+  margin-bottom: 18px;
+  opacity: 0;
+  transition: opacity 0.4s ease 0.05s;
+}
+.scene.active .accent-badge { opacity: 1; }
+
+/* Cards */
+.card-grid {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+.card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 20px 22px;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.scene.active .card:nth-child(1) { opacity:1; transform:translateY(0); transition-delay:0.2s; }
+.scene.active .card:nth-child(2) { opacity:1; transform:translateY(0); transition-delay:0.35s; }
+.scene.active .card:nth-child(3) { opacity:1; transform:translateY(0); transition-delay:0.5s; }
+.scene.active .card:nth-child(4) { opacity:1; transform:translateY(0); transition-delay:0.6s; }
+.scene.active .card:nth-child(5) { opacity:1; transform:translateY(0); transition-delay:0.7s; }
+.scene.active .card:nth-child(6) { opacity:1; transform:translateY(0); transition-delay:0.8s; }
+
+.card.accent-orange { border-left: 3px solid var(--orange); background: rgba(255,102,0,0.07); }
+.card.accent-blue   { border-left: 3px solid var(--sj-blue); background: rgba(25,70,186,0.07); }
+.card.accent-aqua   { border-left: 3px solid var(--aq-blue); background: rgba(0,178,206,0.07); }
+.card.accent-green  { border-left: 3px solid var(--sg-green); background: rgba(195,207,33,0.07); }
+.card.accent-red    { border-left: 3px solid #e74c3c; background: rgba(231,76,60,0.07); }
+
+.card-icon { font-size: 30px; margin-bottom: 10px; }
+.card-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.card-body {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+}
+
+/* Color top-bar card */
+.pillar-card { border-radius: 10px; overflow: hidden; }
+.pillar-top {
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pillar-top .num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.pillar-top .name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+.pillar-body {
+  background: rgba(255,255,255,0.05);
+  padding: 14px 18px;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.55;
+}
+
+/* Big quote / callout */
+.big-callout {
+  background: rgba(255,102,0,0.1);
+  border: 1px solid rgba(255,102,0,0.3);
+  border-radius: 12px;
+  padding: 24px 28px;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.96);
+  transition: all 0.5s ease 0.2s;
+}
+.scene.active .big-callout { opacity: 1; transform: scale(1); }
+.big-callout-text {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(22px, 3.5vw, 34px);
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.2;
+}
+.big-callout-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* SBI row */
+.sbi-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateX(-18px);
+  transition: all 0.45s ease;
+}
+.scene.active .sbi-row:nth-child(1) { opacity:1; transform:translateX(0); transition-delay:0.2s; }
+.scene.active .sbi-row:nth-child(2) { opacity:1; transform:translateX(0); transition-delay:0.38s; }
+.scene.active .sbi-row:nth-child(3) { opacity:1; transform:translateX(0); transition-delay:0.56s; }
+
+.sbi-letter {
+  width: 54px;
+  min-width: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--white);
+  background: var(--orange);
+}
+.sbi-content {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  padding: 12px 18px;
+}
+.sbi-content strong { font-size: 14px; color: var(--white); display: block; margin-bottom: 3px; }
+.sbi-content p { font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.4; }
+
+/* Table */
+.rubric-table { width: 100%; border-collapse: collapse; }
+.rubric-table thead th {
+  background: var(--sg-green);
+  color: var(--charcoal);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  text-align: left;
+}
+.rubric-table tbody tr { opacity:0; transition: opacity 0.3s ease; }
+.scene.active .rubric-table tbody tr:nth-child(1) { opacity:1; transition-delay:0.2s; }
+.scene.active .rubric-table tbody tr:nth-child(2) { opacity:1; transition-delay:0.3s; }
+.scene.active .rubric-table tbody tr:nth-child(3) { opacity:1; transition-delay:0.4s; }
+.scene.active .rubric-table tbody tr:nth-child(4) { opacity:1; transition-delay:0.5s; }
+.scene.active .rubric-table tbody tr:nth-child(5) { opacity:1; transition-delay:0.6s; }
+.scene.active .rubric-table tbody tr:nth-child(6) { opacity:1; transition-delay:0.7s; }
+.rubric-table tbody td {
+  padding: 9px 14px;
+  font-size: 12.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+.rubric-table tbody tr:nth-child(odd) td { background: rgba(255,255,255,0.04); }
+.rubric-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+.rubric-table td:first-child { font-weight: 600; color: var(--off-white); }
+.rubric-table td:nth-child(2) { color: rgba(255,255,255,0.55); }
+.rubric-table td:last-child { color: var(--sg-green); font-family: 'Barlow Condensed'; font-size: 16px; font-weight: 700; text-align: center; }
+
+/* Two-column layout */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+.col-head {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 6px 6px 0 0;
+}
+.col-body {
+  background: rgba(255,255,255,0.04);
+  border-radius: 0 0 8px 8px;
+  padding: 14px 16px;
+}
+.col-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 9px;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.4;
+}
+.col-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.col-left { opacity:0; transform:translateX(-20px); transition:all 0.45s ease 0.2s; }
+.col-right { opacity:0; transform:translateX(20px); transition:all 0.45s ease 0.35s; }
+.scene.active .col-left, .scene.active .col-right { opacity:1; transform:translateX(0); }
+
+/* Stat circles */
+.stat-grid { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+.stat-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: all 0.4s ease;
+}
+.stat-num { font-family:'Barlow Condensed'; font-size: 32px; font-weight: 800; line-height: 1; }
+.stat-lbl { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; opacity: 0.75; }
+.scene.active .stat-circle:nth-child(1) { opacity:1; transform:scale(1); transition-delay:0.15s; }
+.scene.active .stat-circle:nth-child(2) { opacity:1; transform:scale(1); transition-delay:0.3s; }
+.scene.active .stat-circle:nth-child(3) { opacity:1; transform:scale(1); transition-delay:0.45s; }
+.scene.active .stat-circle:nth-child(4) { opacity:1; transform:scale(1); transition-delay:0.6s; }
+
+/* Closing */
+.closing-wrap { text-align: left; }
+.closing-headline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(48px, 7vw, 80px);
+  font-weight: 800;
+  line-height: 0.95;
+  color: var(--white);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease 0.1s;
+}
+.scene.active .closing-headline { opacity:1; transform:translateY(0); }
+.closing-rules { margin-top: 22px; }
+.closing-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateX(-16px);
+  transition: all 0.4s ease;
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.8);
+}
+.closing-bar { width: 4px; height: 22px; border-radius: 2px; flex-shrink: 0; }
+.scene.active .closing-rule:nth-child(1) { opacity:1; transform:translateX(0); transition-delay:0.45s; }
+.scene.active .closing-rule:nth-child(2) { opacity:1; transform:translateX(0); transition-delay:0.6s; }
+.scene.active .closing-rule:nth-child(3) { opacity:1; transform:translateX(0); transition-delay:0.75s; }
+.scene.active .closing-rule:nth-child(4) { opacity:1; transform:translateX(0); transition-delay:0.9s; }
+
+/* Brand color strip */
+.brand-strip { display:flex; height: 4px; position: absolute; bottom: 0; left: 0; right: 0; }
+.brand-strip span { flex:1; }
+
+/* ═══ CAPTION BAR ════════════════════════════════════════════════ */
+.caption-bar {
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 24px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.caption-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.85);
+  text-align: center;
+  width: 100%;
+  transition: opacity 0.3s;
+  font-style: italic;
+}
+.caption-text.hidden { opacity: 0; }
+
+/* ═══ CONTROLS ════════════════════════════════════════════════════ */
+.controls {
+  background: var(--char-dk);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 20px 12px;
+  flex-shrink: 0;
+}
+
+/* Timeline */
+.timeline-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.time-label { font-size: 11px; color: var(--muted); font-family: 'Barlow Condensed'; min-width: 32px; }
+.timeline {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+}
+.timeline-progress {
+  height: 100%;
+  background: var(--orange);
+  border-radius: 99px;
+  transition: width 0.5s linear;
+  width: 0%;
+  pointer-events: none;
+}
+.timeline-chapters {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+}
+.timeline-marker {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 8px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 1px;
+  transform: translateX(-50%);
+}
+
+/* Buttons row */
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+.btn-group { display: flex; align-items: center; gap: 6px; }
+
+.ctrl-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255,255,255,0.7);
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ctrl-btn:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+.ctrl-btn.active { color: var(--orange); }
+.ctrl-btn.play-btn {
+  background: var(--orange);
+  color: var(--white);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  font-size: 16px;
+  padding: 0;
+}
+.ctrl-btn.play-btn:hover { background: #e65c00; transform: scale(1.05); }
+
+.speed-select {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--white);
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Chapter title in controls */
+.now-playing {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  flex: 1;
+}
+.now-playing strong { color: var(--off-white); font-weight: 500; }
+
+/* ═══ SPLASH / INTRO OVERLAY ═════════════════════════════════════ */
+.splash {
+  position: fixed;
+  inset: 0;
+  background: var(--charcoal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: opacity 0.6s ease;
+}
+.splash.hidden { opacity: 0; pointer-events: none; }
+.splash-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 12px;
+}
+.splash-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(52px, 9vw, 100px);
+  font-weight: 800;
+  color: var(--white);
+  line-height: 0.95;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.splash-sub {
+  font-size: 16px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 36px;
+  text-align: center;
+}
+.splash-start {
+  background: var(--orange);
+  color: var(--white);
+  border: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 14px 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.splash-start:hover { background: #e65c00; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,102,0,0.3); }
+.splash-note {
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+}
+.splash-strip { display:flex; position:absolute; bottom:0; left:0; right:0; height:5px; }
+.splash-strip span { flex:1; }
+
+/* ═══ TTS INDICATOR ══════════════════════════════════════════════ */
+.tts-indicator {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 99px;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  z-index: 5;
+  transition: opacity 0.3s;
+}
+.tts-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); animation: pulse-dot 1.2s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+.tts-indicator.silent .tts-dot { background: var(--muted); animation: none; }
+
+/* Responsive */
+@media (max-width: 720px) {
+  .sidebar { display: none; }
+  .card-grid.cols-3 { grid-template-columns: 1fr; }
+  .card-grid.cols-2 { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SPLASH ════════════════════════════════════════════════════ -->
+<div class="splash" id="splash">
+  <div class="splash-brand">TruVolt Brands</div>
+  <div class="splash-title">QA<br>Academy</div>
+  <div class="splash-sub">A refresher training for your QA journey · TruVolt Brands</div>
+  <button class="splash-start" onclick="startTraining()">▶ &nbsp;Let's Go</button>
+  <p class="splash-note">🔊 Best in Chrome or Edge with sound on · Narration uses your browser's text-to-speech<br>Use the speed control to adjust pacing anytime</p>
+  <div class="splash-strip">
+    <span style="background:#FF6600"></span>
+    <span style="background:#1946BA"></span>
+    <span style="background:#00B2CE"></span>
+    <span style="background:#C3CF21"></span>
+    <span style="background:#333333"></span>
+  </div>
+</div>
+
+<!-- ═══ APP ═══════════════════════════════════════════════════════ -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-tag">TruVolt Brands</div>
+      <div class="sidebar-title">QA Academy<br>Video Training</div>
+    </div>
+    <div class="progress-section">
+      <div class="progress-meta">
+        <span>Progress</span>
+        <span id="pct-label">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="chapters-label">Chapters</div>
+    <div class="chapters" id="chapters-list"></div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- STAGE -->
+    <div class="stage-wrap" id="stage">
+
+      <!-- TTS indicator -->
+      <div class="tts-indicator silent" id="tts-indicator">
+        <div class="tts-dot"></div>
+        <span id="tts-label">Narrating</span>
+      </div>
+
+      <!-- ── SCENE 0: INTRO ── -->
+      <div class="scene active" id="scene-0">
+        <div class="scene-bg" style="background:linear-gradient(135deg,#1e1e1e 0%,#2a2a2a 100%)"></div>
+        <div class="ghost-letter" style="font-size:420px;right:-60px;bottom:-80px;opacity:0.04">Q</div>
+        <div class="ghost-letter" style="font-size:180px;left:-20px;top:-30px;opacity:0.03">A</div>
+        <div class="scene-content">
+          <div class="scene-title-wrap">
+            <div class="accent-badge">🎓 &nbsp;Course Introduction</div>
+            <div class="scene-headline">Welcome to<br><span style="color:var(--orange)">QA Academy</span></div>
+            <div class="orule"></div>
+            <div class="scene-sub">You have been in this role for a few months now — and that's exactly the right time for this. You're not starting from scratch. You're leveling up.</div>
+            <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;">
+              <div style="background:var(--sj-blue);border-radius:6px;padding:8px 16px;font-family:'Barlow Condensed';font-weight:700;font-size:13px;opacity:0;transition:all 0.4s ease 0.55s" class="intro-badge">10 Chapters</div>
+              <div style="background:var(--orange);border-radius:6px;padding:8px 16px;font-family:'Barlow Condensed';font-weight:700;font-size:13px;opacity:0;transition:all 0.4s ease 0.7s" class="intro-badge">Friendly &amp; Coaching</div>
+              <div style="background:var(--aq-blue);border-radius:6px;padding:8px 16px;font-family:'Barlow Condensed';font-weight:700;font-size:13px;opacity:0;transition:all 0.4s ease 0.85s" class="intro-badge">Built on Your Experience</div>
+            </div>
+          </div>
+        </div>
+        <div class="brand-strip">
+          <span style="background:#FF6600"></span><span style="background:#1946BA"></span>
+          <span style="background:#00B2CE"></span><span style="background:#C3CF21"></span>
+        </div>
+      </div>
+
+      <!-- ── SCENE 1: WHAT IS QA ── -->
+      <div class="scene" id="scene-1">
+        <div class="scene-bg" style="background:#222"></div>
+        <div class="ghost-letter" style="font-size:300px;right:-40px;top:-60px;opacity:0.04">QA</div>
+        <div class="scene-content">
+          <div class="accent-badge" style="background:rgba(255,102,0,0.15);border-color:rgba(255,102,0,0.35);color:var(--orange)">📋 Module 01 · Foundations</div>
+          <div class="scene-headline" style="font-size:clamp(32px,4.5vw,52px);margin-bottom:18px">What Is Quality Assurance?</div>
+          <div class="card-grid cols-3">
+            <div class="card accent-orange">
+              <div class="card-icon">📊</div>
+              <div class="card-label">Insight</div>
+              <div class="card-body">Patterns in how support is delivered — what's working, what's breaking</div>
+            </div>
+            <div class="card accent-blue">
+              <div class="card-icon">🎯</div>
+              <div class="card-label">Accountability</div>
+              <div class="card-body">Objective records tied to rubrics — not opinions or feelings</div>
+            </div>
+            <div class="card accent-aqua">
+              <div class="card-icon">🔁</div>
+              <div class="card-label">Improvement</div>
+              <div class="card-body">Coaching targets, training gaps, and process fixes identified</div>
+            </div>
+          </div>
+          <div class="card accent-green" style="margin-top:14px">
+            <div class="card-body"><strong style="color:var(--sg-green)">⚡ At TruVolt:</strong> &nbsp;Every ticket you review is a data point. Stack enough and you can see what's working, what's breaking, and where the next training opportunity lives — across Snow Joe, Sun Joe, Jetson, and Bliss.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCENE 2: IDENTITY SHIFT ── -->
+      <div class="scene" id="scene-2">
+        <div class="scene-bg" style="background:#1e1e1e"></div>
+        <div class="scene-content">
+          <div class="accent-badge" style="background:rgba(25,70,186,0.15);border-color:rgba(25,70,186,0.4);color:var(--sj-blue)">🔄 Module 02 · The Identity Shift</div>
+          <div class="scene-headline" style="font-size:clamp(30px,4vw,48px);margin-bottom:16px">Agent Brain vs. QA Brain</div>
+          <div class="two-col">
+            <div class="col-left">
+              <div class="col-head" style="background:rgba(231,76,60,0.2);color:#e74c3c">🚫 Agent Brain — Leave This Behind</div>
+              <div class="col-body">
+                <div class="col-item"><div class="col-dot" style="background:#e74c3c"></div>"They were probably having a rough day."</div>
+                <div class="col-item"><div class="col-dot" style="background:#e74c3c"></div>"I've seen worse — this is fine."</div>
+                <div class="col-item"><div class="col-dot" style="background:#e74c3c"></div>"Close enough to the standard."</div>
+                <div class="col-item"><div class="col-dot" style="background:#e74c3c"></div>"I don't want to ding them on that."</div>
+                <div class="col-item"><div class="col-dot" style="background:#e74c3c"></div>"We're friends — I know they can do better."</div>
+              </div>
+            </div>
+            <div class="col-right">
+              <div class="col-head" style="background:rgba(195,207,33,0.15);color:var(--sg-green)">✅ QA Brain — Build This</div>
+              <div class="col-body">
+                <div class="col-item"><div class="col-dot" style="background:var(--sg-green)"></div>Does this meet the rubric? Yes or no.</div>
+                <div class="col-item"><div class="col-dot" style="background:var(--sg-green)"></div>What specific behaviors can I document?</div>
+                <div class="col-item"><div class="col-dot" style="background:var(--sg-green)"></div>What trend does this represent?</div>
+                <div class="col-item"><div class="col-dot" style="background:var(--sg-green)"></div>Would I score this the same way blind?</div>
+                <div class="col-item"><div class="col-dot" style="background:var(--sg-green)"></div>What coaching note would help them grow?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCENE 3: BLIND REVIEW TEST ── -->
+      <div class="scene" id="scene-3">
+        <div class="scene-bg" style="background:#222"></div>
+        <div class="ghost-letter" style="font-size:300px;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0.03">?</div>
+        <div class="scene-content" style="text-align:center;display:flex;flex-direction:column;align-items:center">
+          <div class="accent-badge" style="background:rgba(0,178,206,0.12);border-color:rgba(0,178,206,0.35);color:var(--aq-blue)">🔍 The Blind Review Test</div>
+          <div class="big-callout" style="max-width:680px">
+            <div class="big-callout-text">"If I covered the agent's name and scored this ticket blind — would I score it the same way?"</div>
+            <div class="big-callout-sub">If the answer is no, you've found your bias. Fix the score to match the rubric, not the relationship.</div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+            <div class="card" style="text-align:left;max-width:220px;padding:14px 18px;">
+              <div style="color:var(--orange);font-size:22px;margin-bottom:6px">⚖️</div>
+              <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px">The rubric is the standard</div>
+              <div style="font-size:12px;color:var(--muted)">Not the friendship. Not the effort. Not the day.</div>
+            </div>
+            <div class="card" style="text-align:left;max-width:220px;padding:14px 18px;">
+              <div style="color:var(--sg-green);font-size:22px;margin-bottom:6px">🎁</div>
+              <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px">Honest feedback is a gift</div>
+              <div style="font-size:12px;color:var(--muted)">Vague scores rob agents of the coaching they need.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCENE 4: THREE PILLARS ── -->
+      <div class="scene" id="scene-4">
+        <div class="scene-bg" style="background:#1e1e1e"></div>
+        <div class="scene-content">
+          <div class="accent-badge" style="background:rgba(0,178,206,0.12);border-color:rgba(0,178,206,0.35);color:var(--aq-blue)">⚙️ Module 03 · Three Pillars of QA</div>
+          <div class="scene-headline" style="font-size:clamp(30px,4vw,46px);margin-bottom:18px">Every Issue Falls into One of Three Buckets</div>
+          <div class="card-grid cols-3">
+            <div class="card pillar-card" style="padding:0;background:transparent;border:none">
+              <div class="pillar-top" style="background:var(--orange);color:var(--white)">
+                <span class="num">01</span><span style="font-size:18px">⚙️</span><span class="name">Process</span>
+              </div>
+              <div class="pillar-body">The system or policy is broken. Multiple agents make the same mistake. <br><br><strong style="color:var(--orange)">Fix:</strong> Document standards, update macros, clarify policy.</div>
+            </div>
+            <div class="card pillar-card" style="padding:0;background:transparent;border:none">
+              <div class="pillar-top" style="background:var(--sj-blue);color:var(--white)">
+                <span class="num">02</span><span style="font-size:18px">👤</span><span class="name">People</span>
+              </div>
+              <div class="pillar-body">A specific agent has a skill or knowledge gap. Policy exists — they're not following it.<br><br><strong style="color:var(--sj-blue)">Fix:</strong> Targeted coaching session.</div>
+            </div>
+            <div class="card pillar-card" style="padding:0;background:transparent;border:none">
+              <div class="pillar-top" style="background:var(--sg-green);color:#1e1e1e">
+                <span class="num" style="color:#1e1e1e">03</span><span style="font-size:18px">📦</span><span class="name">Product</span>
+              </div>
+              <div class="pillar-body">The item itself causes repeat contacts. Same SKU, same failure mode across tickets.<br><br><strong style="color:var(--sg-green)">Fix:</strong> Escalate to Product Quality team.</div>
+            </div>
+          </div>
+          <div class="card accent-red" style="margin-top:14px">
+            <div class="card-body"><strong style="color:#e74c3c">⚠️ Why this matters:</strong> &nbsp;If you coach an agent for a broken process, you're punishing them for management's failure. Get the pillar right first — then act.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCENE 5: SCORING ── -->
+      <div class="scene" id="scene-5">
+        <div class="scene-bg" style="background:#222"></div>
+        <div class="scene-content">
+          <div class="accent-badge" style="background:rgba(195,207,33,0.12);border-color:rgba(195,207,33,0.35);color:var(--sg-green)">📋 Module 04 · Scoring Objectively</div>
+          <div class="scene-headline" style="font-size:clamp(28px,3.8vw,44px);margin-bottom:6px">The IQS Rubric</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;font-style:italic">Score the interaction, not the agent. Every deduction needs a note.</div>
+          <table class="rubric-table">
+            <thead>
+              <tr><th>Category</th><th>What You're Evaluating</th><th>Weight</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Greeting &amp; Tone</td><td>Warm opening, correct brand, professional language</td><td>10%</td></tr>
+              <tr><td>Issue Identification</td><td>Agent understood and restated the customer's issue</td><td>15%</td></tr>
+              <tr><td>Policy Adherence</td><td>Resolution aligned with current warranty/return policy</td><td>25%</td></tr>
+              <tr><td>Accuracy</td><td>Correct parts, SKUs, troubleshooting steps provided</td><td>25%</td></tr>
+              <tr><td>Resolution &amp; FCR</td><td>Issue fully resolved; no repeat contact necessary</td><td>15%</td></tr>
+              <tr><td>Tagging &amp; Docs</td><td>Ticket tagged correctly; internal notes complete</td><td>10%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── SCENE 6: SBI MODEL ── -->
+      <div class="scene" id="scene-6">
+        <div class="scene-bg" style="background:#1e1e1e"></div>
+        <div class="scene-content">
+          <div class="accent-badge" style="background:rgba(255,102,0,0.12);border-color:rgba(255,102,0,0.35);color:var(--orange)">✍️ Module 05 · Calling Issues Out</div>
+          <div class="scene-headline" style="font-size:clamp(28px,3.8vw,44px);margin-bottom:18px">The SBI Coaching Model</div>
+          <div class="sbi-row">
+            <div class="sbi-letter">S</div>
+            <div class="sbi-content">
+              <strong>Situation — Set the context</strong>
+              <p>Ticket #, date, and a one-line description. <em>"On ticket #123456 (Snow Joe warranty, 3/20)…"</em></p>
+            </div>
+          </div>
+          <div class="sbi-row">
+            <div class="sbi-letter">B</div>
+            <div class="sbi-content">
+              <strong>Behavior — Observable facts only</strong>
+              <p>What specifically happened. No opinions. <em>"The agent closed the ticket without confirming the customer's shipping address."</em></p>
+            </div>
+          </div>
+          <div class="sbi-row">
+            <div class="sbi-letter">I</div>
+            <div class="sbi-content">
+              <strong>Impact — Why it matters</strong>
+              <p>The consequence, plus the correct behavior. <em>"This risks a failed shipment. Per policy, address confirmation is required before closing all replacement orders."</em></p>
+            </div>
+          </div>
+          <div class="card accent-aqua" style="margin-top:4px">
+            <div class="card-body"><strong style="color:var(--aq-blue)">Three parts. Specific. Factual. Actionable.</strong> &nbsp;No vague feedback. Show them exactly what to do differently.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCENE 7: BIAS ── -->
+      <div class="scene" id="scene-7">
+        <div class="scene-bg" style="background:#222"></div>
+        <div class="scene-content">
+          <div class="accent-badge" style="background:rgba(25,70,186,0.12);border-color:rgba(25,70,186,0.35);color:var(--sj-blue)">🧠 Module 06 · Bias &amp; Blind Spots</div>
+          <div class="scene-headline" style="font-size:clamp(26px,3.5vw,40px);margin-bottom:16px">6 Biases That Corrupt QA Data</div>
+          <div class="card-grid cols-3">
+            <div class="card" style="border-left:3px solid var(--orange)">
+              <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;margin-bottom:5px">LENIENCY</div>
+              <div class="card-body">Scores cluster 80–95% regardless of quality. <em>Fix: Calibrate monthly.</em></div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--sj-blue)">
+              <div style="font-size:11px;font-weight:700;color:var(--sj-blue);letter-spacing:1px;margin-bottom:5px">FRIENDSHIP</div>
+              <div class="card-body">Scores map to relationships, not performance. <em>Fix: Blind reviews.</em></div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--aq-blue)">
+              <div style="font-size:11px;font-weight:700;color:var(--aq-blue);letter-spacing:1px;margin-bottom:5px">CONTEXT OVERLOAD</div>
+              <div class="card-body">Factoring in the agent's rough day. <em>Fix: Context goes in notes, never the score.</em></div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--sg-green)">
+              <div style="font-size:11px;font-weight:700;color:var(--sg-green);letter-spacing:1px;margin-bottom:5px">RESOLUTION TUNNEL</div>
+              <div class="card-body">Resolution = everything must be fine. <em>Fix: Read the full ticket first.</em></div>
+            </div>
+            <div class="card" style="border-left:3px solid #e74c3c">
+              <div style="font-size:11px;font-weight:700;color:#e74c3c;letter-spacing:1px;margin-bottom:5px">CATEGORY INFLATION</div>
+              <div class="card-body">Full credit for partial behaviors. <em>Fix: Standard not met = not full credit.</em></div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--muted)">
+              <div style="font-size:11px;font-weight:700;color:var(--muted-lt);letter-spacing:1px;margin-bottom:5px">RECENCY BIAS</div>
+              <div class="card-body">Last ticket colors your next score. <em>Fix: Breaks. Random review order.</em></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCENE 8: CALLING IT OUT ── -->
+      <div class="scene" id="scene-8">
+        <div class="scene-bg" style="background:#1e1e1e"></div>
+        <div class="scene-content">
+          <div class="accent-badge" style="background:rgba(0,178,206,0.12);border-color:rgba(0,178,206,0.35);color:var(--aq-blue)">📣 Escalation — Calling It Out</div>
+          <div class="scene-headline" style="font-size:clamp(26px,3.5vw,42px);margin-bottom:18px">You're an Intelligence Function</div>
+          <div class="card-grid cols-2" style="margin-bottom:14px">
+            <div class="card accent-orange">
+              <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:8px">⚙️ Process Gap Escalation</div>
+              <div class="card-body">3+ tickets showing the same inconsistency with no written policy? Document it. Name the gap specifically. Propose a fix. Take it to <strong style="color:var(--white)">Ops or Team Lead.</strong></div>
+            </div>
+            <div class="card accent-green">
+              <div style="font-size:13px;font-weight:700;color:var(--sg-green);margin-bottom:8px">📦 Product Signal Escalation</div>
+              <div class="card-body">Same SKU, same failure mode, 5+ tickets in 30 days? Document the SKU, failure description, ticket numbers. Route to <strong style="color:var(--white)">Product Quality team.</strong></div>
+            </div>
+          </div>
+          <div class="big-callout" style="padding:18px 24px;text-align:left">
+            <div class="big-callout-text" style="font-size:clamp(16px,2vw,22px)">"You're the only person looking across every ticket, every agent, every brand simultaneously. If you see it and don't say it — it doesn't get fixed."</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCENE 9: CLOSING ── -->
+      <div class="scene" id="scene-9">
+        <div class="scene-bg" style="background:var(--charcoal)"></div>
+        <div class="ghost-letter" style="font-size:420px;right:-60px;bottom:-80px;opacity:0.04">Q</div>
+        <div class="ghost-letter" style="font-size:200px;left:-20px;top:-40px;opacity:0.03">A</div>
+        <div class="scene-content">
+          <div class="closing-wrap">
+            <div style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:10px;opacity:0;transition:all 0.4s ease 0.05s" class="scene-eyebrow">TRUVOLT BRANDS · QA ACADEMY</div>
+            <div class="closing-headline">You're Doing<br><span style="color:var(--orange)">Great. Keep Going.</span></div>
+            <div style="width:56px;height:4px;background:var(--orange);border-radius:99px;margin:18px 0;opacity:0;transition:all 0.4s ease 0.4s" class="orule"></div>
+            <div class="closing-rules">
+              <div class="closing-rule"><div class="closing-bar" style="background:var(--orange)"></div>Score the interaction, not the agent</div>
+              <div class="closing-rule"><div class="closing-bar" style="background:var(--sj-blue)"></div>Get the pillar right before you act</div>
+              <div class="closing-rule"><div class="closing-bar" style="background:var(--aq-blue)"></div>Use SBI every time you write coaching</div>
+              <div class="closing-rule"><div class="closing-bar" style="background:var(--sg-green)"></div>Calibrate regularly — your data matters</div>
+            </div>
+          </div>
+        </div>
+        <div class="brand-strip">
+          <span style="background:#FF6600"></span><span style="background:#1946BA"></span>
+          <span style="background:#00B2CE"></span><span style="background:#C3CF21"></span>
+        </div>
+      </div>
+
+    </div><!-- /stage-wrap -->
+
+    <!-- CAPTION BAR -->
+    <div class="caption-bar">
+      <div class="caption-text" id="caption-text">Press Play to start narrated training</div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="timeline-wrap">
+        <span class="time-label" id="time-current">0:00</span>
+        <div class="timeline" id="timeline" onclick="seekTimeline(event)">
+          <div class="timeline-progress" id="timeline-progress"></div>
+          <div class="timeline-chapters" id="timeline-markers"></div>
+        </div>
+        <span class="time-label" id="time-total">0:00</span>
+      </div>
+      <div class="btn-row">
+        <div class="btn-group">
+          <button class="ctrl-btn" onclick="prevScene()" title="Previous chapter">⏮</button>
+          <button class="ctrl-btn play-btn" id="play-btn" onclick="togglePlay()">▶</button>
+          <button class="ctrl-btn" onclick="nextScene()" title="Next chapter">⏭</button>
+        </div>
+        <div class="now-playing">
+          <strong id="now-playing-title">Introduction</strong>
+        </div>
+        <div class="btn-group">
+          <select class="speed-select" id="speed-select" onchange="changeSpeed(this.value)">
+            <option value="0.8">0.8×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.2">1.2×</option>
+            <option value="1.5">1.5×</option>
+          </select>
+          <button class="ctrl-btn" id="caption-btn" onclick="toggleCaptions()" title="Toggle captions">CC</button>
+          <button class="ctrl-btn" id="autoplay-btn" onclick="toggleAutoplay()" title="Toggle autoplay" style="font-size:14px">🔁 Auto</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ═══ DATA ════════════════════════════════════════════════════════
+const CHAPTERS = [
+  {
+    title: "Introduction",
+    dur: "~30s",
+    script: "Hey! Welcome to QA Academy. So, you have been in this role for a few months now, and honestly? That is exactly the right time to do this training. You have got enough real tickets under your belt to make everything here feel really concrete. You are not starting from scratch — you are leveling up. We are going to go through the foundations of QA together, revisit some things you may already be doing, and help sharpen the areas where most QA analysts — even experienced ones — tend to get a little stuck. Let's get into it!"
+  },
+  {
+    title: "What Is QA?",
+    dur: "~38s",
+    script: "Alright, so let's start with the big picture. What is QA actually for? And I want you to think about this from where you are sitting right now, a few months in. You have probably already noticed that some tickets look fine on the surface but something feels off. Or maybe you have seen the same kind of mistake show up from a few different agents. That instinct? That is exactly what QA is designed to act on. Every ticket you review is a data point. And when you stack those data points together, you can see patterns — what is working, what keeps breaking, and where the team actually needs support. Across Snow Joe, Sun Joe, Aqua Joe, Jetson, Bliss — you are the one holding that whole picture."
+  },
+  {
+    title: "The Identity Shift",
+    dur: "~40s",
+    script: "Now here is the one that trips up almost every QA analyst who came from the agent floor — and that is probably you. You know what it feels like to be on the other side of a tough ticket. You know when someone is genuinely struggling versus when they just missed a step. And that empathy is genuinely a gift. But it can also quietly pull your scores in the wrong direction. You might find yourself thinking things like — they were probably slammed today, or I know they can do better, so I will give them the benefit of the doubt this time. And here is the thing: every time you do that, you are not helping them. You are actually taking away the coaching moment they need to grow. The kindest thing you can do as a QA analyst is give honest, specific feedback — even when it is hard."
+  },
+  {
+    title: "The Blind Review Test",
+    dur: "~30s",
+    script: "Here is a simple habit that will keep you honest, and I really want you to try this on your next review. Before you submit any score, ask yourself: if I covered the agent's name right now and read this ticket as a stranger — would I score it the same way? If the answer is yes, great! Submit it. If the answer is no — and be real with yourself here — then you have found where your relationship with that person is quietly influencing your scoring. That is not a character flaw, it is just human. The fix is simple: adjust the score to match what the rubric actually says, not what your history with that person says."
+  },
+  {
+    title: "Three Pillars of QA",
+    dur: "~42s",
+    script: "Okay, this one is really important, and I want you to think about tickets you have already reviewed as I walk through this. Every issue you are going to encounter in QA falls into one of three categories. First, process — the system, the workflow, or the policy itself is broken or unclear. Second, people — a specific agent has a skill gap or a knowledge gap and needs coaching. Third, product — the item itself is causing customers to call back repeatedly. Now, why does this matter so much? Because if you mix them up, your fix will not work. If you coach an agent for something that is actually a missing policy, you are blaming them for something that was never their fault. And if you write something off as a training issue when it is really a product defect, customers keep calling and nothing changes. Before you coach or escalate anything — get clear on the bucket first."
+  },
+  {
+    title: "Scoring with the IQS Rubric",
+    dur: "~38s",
+    script: "Let's talk about the rubric, because this is where a lot of QA analysts — even after a few months — start to develop some habits that quietly skew the data. The golden rule is this: you are scoring the interaction, not the agent. Not their intentions, not their effort, not their overall track record. Just what happened in that specific ticket. Here is a practical tip: read the whole ticket first before you score anything. Resist the urge to score as you read. Get the full picture, then evaluate each category on its own. And any time you mark something down — and this is really important — write a note. Not just missed empathy. Write what was actually missing, and what good would have looked like. That note is what turns a score into a coaching moment."
+  },
+  {
+    title: "The SBI Coaching Model",
+    dur: "~40s",
+    script: "So let's talk about how to actually write that coaching note. Because feedback without structure tends to land badly — it either feels too vague to act on, or it feels personal when it was not meant to be. The SBI model is how we fix that. SBI stands for Situation, Behavior, Impact. Situation: give the context — the ticket number, the date, maybe one sentence about what the customer needed. Behavior: describe exactly what the agent did or did not do, using just the facts from the ticket — no opinions, no assumptions. Impact: explain why it matters, and what the correct approach looks like. Three parts, and you are done. It keeps feedback specific, fair, and actionable. Give it a try on your next coaching note and notice how much more clearly it lands."
+  },
+  {
+    title: "Bias & Blind Spots",
+    dur: "~40s",
+    script: "Alright, here is the chapter that a lot of people find a little uncomfortable — but in the best way. We are talking about bias. And I want to be really clear: having these biases does not make you a bad QA analyst. It makes you human. The goal is just to see them clearly so they stop quietly skewing your data. There are six big ones. Leniency bias — your scores cluster high regardless of ticket quality. Friendship bias — your scores are higher for people you like and lower for people you have had friction with. Context overload — you factor in the agent's rough week even though it has nothing to do with the ticket. Resolution tunnel vision — if the customer got a solution, you assume everything else was fine. Category inflation — you give full credit when the standard was only partially met. And recency bias — the ticket you just scored is influencing how you score the next one. The fix for all of them is calibration. Review the same ticket as another evaluator, compare scores, and talk about the gaps. Do this regularly."
+  },
+  {
+    title: "Calling Issues Out",
+    dur: "~40s",
+    script: "This is the part of QA that, honestly, takes the most confidence — especially when you are still building your footing in the role. But calling out issues — process gaps, product signals, patterns you are seeing — is one of the most valuable things you can do for this team. Think about it this way: the team lead is busy managing the queue. The supervisor is handling escalations. You are the one who is actually reading tickets across every agent, every brand, every channel. If you notice that six different agents are all handling the same ticket type differently with no written policy to guide them — that is not a people problem. That is a process gap, and it needs to go to Ops. If you are seeing the same SKU fail in the same way across five tickets in a month — that is a product signal, and it needs to go to the Product Quality team. You saw it. Say it. That is the job."
+  },
+  {
+    title: "You're Doing Great — Keep Going",
+    dur: "~30s",
+    script: "And that is QA Academy! Here is what I want you to take away from this. You have already been doing this work for a few months, and that matters. You have real experience to build on. What we covered today are the tools that help you trust your instincts, communicate your findings clearly, and make the whole team better. Score the interaction, not the agent. Get the pillar right before you act. Use SBI every time you write coaching. And calibrate regularly so your data stays clean. You are the quality engine of this team. Keep going — you are doing great."
+  }
+];
+
+// ═══ STATE ═══════════════════════════════════════════════════════
+let currentScene = 0;
+let isPlaying = false;
+let captionsOn = true;
+let autoplayOn = true;
+let speechRate = 1.0;
+let utterance = null;
+let sceneTimer = null;
+let completedScenes = new Set();
+let totalEstSecs = 0;
+let elapsedSecs = 0;
+let timerInterval = null;
+
+// Approx durations in seconds per scene (for timeline)
+const SCENE_DURATIONS = [22, 32, 32, 22, 35, 30, 32, 32, 32, 22];
+
+// ═══ INIT ════════════════════════════════════════════════════════
+function init() {
+  buildChaptersList();
+  buildTimelineMarkers();
+  totalEstSecs = SCENE_DURATIONS.reduce((a,b)=>a+b,0);
+  document.getElementById('time-total').textContent = formatTime(totalEstSecs);
+  updateUI();
+}
+
+function buildChaptersList() {
+  const list = document.getElementById('chapters-list');
+  list.innerHTML = '';
+  CHAPTERS.forEach((ch, i) => {
+    const el = document.createElement('div');
+    el.className = 'chapter-item' + (i === 0 ? ' active' : '');
+    el.id = `ch-item-${i}`;
+    el.innerHTML = `
+      <div class="ch-num">${i+1}</div>
+      <div class="ch-info">
+        <div class="ch-title">${ch.title}</div>
+        <div class="ch-dur">${ch.dur}</div>
+      </div>`;
+    el.onclick = () => goToScene(i);
+    list.appendChild(el);
+  });
+}
+
+function buildTimelineMarkers() {
+  const container = document.getElementById('timeline-markers');
+  let acc = 0;
+  SCENE_DURATIONS.slice(0,-1).forEach(dur => {
+    acc += dur;
+    const pct = (acc / totalEstSecs) * 100;
+    const marker = document.createElement('div');
+    marker.className = 'timeline-marker';
+    marker.style.left = pct + '%';
+    container.appendChild(marker);
+  });
+}
+
+// ═══ SPLASH ══════════════════════════════════════════════════════
+function startTraining() {
+  document.getElementById('splash').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('splash').style.display = 'none';
+    goToScene(0);
+    // Activate intro-badge animations
+    document.querySelectorAll('.intro-badge').forEach(b => { b.style.opacity = '1'; });
+  }, 600);
+}
+
+// ═══ PLAYBACK ════════════════════════════════════════════════════
+function togglePlay() {
+  if (isPlaying) { pauseTraining(); } else { playTraining(); }
+}
+
+function playTraining() {
+  isPlaying = true;
+  document.getElementById('play-btn').textContent = '⏸';
+  speakScene(currentScene);
+}
+
+function pauseTraining() {
+  isPlaying = false;
+  document.getElementById('play-btn').textContent = '▶';
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  clearTimers();
+  setTTSIndicator(false);
+}
+
+function speakScene(idx) {
+  if (!window.speechSynthesis) {
+    // Fallback: just auto-advance by timer
+    simulatePlayback(idx);
+    return;
+  }
+  window.speechSynthesis.cancel();
+  clearTimers();
+
+  const script = CHAPTERS[idx].script;
+  updateCaption(script);
+  setTTSIndicator(true);
+
+  utterance = new SpeechSynthesisUtterance(script);
+  utterance.rate = speechRate * 0.92; // Slightly slower = warmer, less rushed
+  utterance.pitch = 1.08;             // Slightly higher pitch = friendlier, more energetic
+  utterance.volume = 1.0;
+
+  // Voice priority: warm conversational voices first
+  const voices = window.speechSynthesis.getVoices();
+  const preferred =
+    voices.find(v => v.name === 'Samantha') ||
+    voices.find(v => v.name === 'Karen') ||
+    voices.find(v => v.name.includes('Aria')) ||
+    voices.find(v => v.name.includes('Jenny')) ||
+    voices.find(v => v.name.includes('Google US English')) ||
+    voices.find(v => v.name.includes('Google UK English Female')) ||
+    voices.find(v => v.lang === 'en-US') ||
+    voices.find(v => v.lang.startsWith('en')) ||
+    voices[0];
+  if (preferred) utterance.voice = preferred;
+
+  utterance.onboundary = (e) => {
+    if (e.name === 'word') updateTimelineWhileSpeaking(idx, e.charIndex, script.length);
+  };
+
+  utterance.onend = () => {
+    setTTSIndicator(false);
+    completedScenes.add(idx);
+    updateChapterDone(idx);
+    if (autoplayOn && isPlaying && idx < CHAPTERS.length - 1) {
+      setTimeout(() => { if(isPlaying) goToScene(idx + 1, true); }, 900);
+    } else if (idx === CHAPTERS.length - 1) {
+      pauseTraining();
+      updateCaption("🎉 Amazing work! You've completed all 10 chapters of QA Academy. You've got this!");
+    }
+  };
+
+  utterance.onerror = () => {
+    setTTSIndicator(false);
+    simulatePlayback(idx);
+  };
+
+  window.speechSynthesis.speak(utterance);
+  startElapsedTimer(idx);
+}
+
+function simulatePlayback(idx) {
+  // Fallback timer-based playback for browsers without TTS
+  const dur = (SCENE_DURATIONS[idx] / speechRate) * 1000;
+  startElapsedTimer(idx);
+  sceneTimer = setTimeout(() => {
+    completedScenes.add(idx);
+    updateChapterDone(idx);
+    if (autoplayOn && isPlaying && idx < CHAPTERS.length - 1) {
+      goToScene(idx + 1, true);
+    }
+  }, dur);
+}
+
+function startElapsedTimer(idx) {
+  clearInterval(timerInterval);
+  const baseElapsed = SCENE_DURATIONS.slice(0, idx).reduce((a,b)=>a+b,0);
+  const sceneDur = SCENE_DURATIONS[idx];
+  const start = Date.now();
+
+  timerInterval = setInterval(() => {
+    const elapsed = Math.min((Date.now() - start) / 1000 / speechRate, sceneDur);
+    const total = baseElapsed + elapsed;
+    document.getElementById('time-current').textContent = formatTime(total);
+    const pct = Math.min((total / totalEstSecs) * 100, 100);
+    document.getElementById('timeline-progress').style.width = pct + '%';
+    document.getElementById('pct-label').textContent = Math.round(pct) + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+  }, 200);
+}
+
+function updateTimelineWhileSpeaking(idx, charIdx, totalChars) {
+  const baseElapsed = SCENE_DURATIONS.slice(0, idx).reduce((a,b)=>a+b,0);
+  const sceneDur = SCENE_DURATIONS[idx];
+  const sceneProgress = charIdx / totalChars;
+  const total = baseElapsed + sceneDur * sceneProgress;
+  const pct = Math.min((total / totalEstSecs) * 100, 100);
+  document.getElementById('timeline-progress').style.width = pct + '%';
+  document.getElementById('pct-label').textContent = Math.round(pct) + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('time-current').textContent = formatTime(total);
+}
+
+function clearTimers() {
+  clearTimeout(sceneTimer);
+  clearInterval(timerInterval);
+}
+
+// ═══ SCENE NAV ═══════════════════════════════════════════════════
+function goToScene(idx, autoPlaying = false) {
+  if (idx < 0 || idx >= CHAPTERS.length) return;
+
+  // Hide current
+  document.getElementById(`scene-${currentScene}`).classList.remove('active');
+  document.getElementById(`ch-item-${currentScene}`).classList.remove('active');
+
+  currentScene = idx;
+
+  // Show new
+  document.getElementById(`scene-${idx}`).classList.add('active');
+  document.getElementById(`ch-item-${idx}`).classList.add('active');
+  document.getElementById(`ch-item-${idx}`).scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+  // Update now-playing
+  document.getElementById('now-playing-title').textContent = CHAPTERS[idx].title;
+
+  if (autoPlaying && isPlaying) {
+    speakScene(idx);
+  } else if (!autoPlaying) {
+    // Manual nav — update caption but don't auto-speak unless already playing
+    updateCaption(CHAPTERS[idx].script);
+    if (isPlaying) speakScene(idx);
+  }
+}
+
+function nextScene() { 
+  pauseTraining();
+  goToScene(currentScene + 1); 
+}
+
+function prevScene() { 
+  pauseTraining();
+  goToScene(currentScene - 1); 
+}
+
+function seekTimeline(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  const targetSec = pct * totalEstSecs;
+  let acc = 0;
+  for (let i = 0; i < SCENE_DURATIONS.length; i++) {
+    if (acc + SCENE_DURATIONS[i] >= targetSec) {
+      pauseTraining();
+      goToScene(i);
+      return;
+    }
+    acc += SCENE_DURATIONS[i];
+  }
+}
+
+// ═══ UI HELPERS ══════════════════════════════════════════════════
+function updateUI() {
+  const autoBtn = document.getElementById('autoplay-btn');
+  autoBtn.style.color = autoplayOn ? 'var(--orange)' : 'rgba(255,255,255,0.4)';
+  const ccBtn = document.getElementById('caption-btn');
+  ccBtn.style.color = captionsOn ? 'var(--orange)' : 'rgba(255,255,255,0.4)';
+}
+
+function updateCaption(text) {
+  const el = document.getElementById('caption-text');
+  el.classList.add('hidden');
+  setTimeout(() => {
+    el.textContent = text;
+    if (captionsOn) el.classList.remove('hidden');
+  }, 200);
+}
+
+function toggleCaptions() {
+  captionsOn = !captionsOn;
+  const el = document.getElementById('caption-text');
+  el.classList.toggle('hidden', !captionsOn);
+  updateUI();
+}
+
+function toggleAutoplay() {
+  autoplayOn = !autoplayOn;
+  updateUI();
+}
+
+function changeSpeed(val) {
+  speechRate = parseFloat(val);
+  if (isPlaying) {
+    const wasPlaying = true;
+    pauseTraining();
+    if (wasPlaying) playTraining();
+  }
+}
+
+function setTTSIndicator(active) {
+  const el = document.getElementById('tts-indicator');
+  const lbl = document.getElementById('tts-label');
+  if (active) {
+    el.classList.remove('silent');
+    lbl.textContent = 'Narrating';
+  } else {
+    el.classList.add('silent');
+    lbl.textContent = isPlaying ? 'Paused' : 'Ready';
+  }
+}
+
+function updateChapterDone(idx) {
+  const item = document.getElementById(`ch-item-${idx}`);
+  if (item && !item.classList.contains('active')) {
+    item.classList.add('done');
+    item.querySelector('.ch-num').textContent = '✓';
+  }
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// Load voices when available
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  if (e.code === 'ArrowRight') nextScene();
+  if (e.code === 'ArrowLeft') prevScene();
+  if (e.code === 'KeyC') toggleCaptions();
+});
+
+// Activate intro badge animations when scene 0 is active
+document.querySelectorAll('.intro-badge').forEach((b,i) => {
+  b.style.transition = `all 0.4s ease ${0.55 + i*0.15}s`;
+});
+
+init();
+</script>
+</body>
+</html>
