@@ -1190,11 +1190,15 @@ let utterance = null;
 let sceneTimer = null;
 let completedScenes = new Set();
 let totalEstSecs = 0;
-let elapsedSecs = 0;
 let timerInterval = null;
 
+// Time-based pause tracking — no reliance on onboundary (broken in Chrome)
+let utteranceStartMs = 0;   // when the current speak() call began
+let pausedElapsedMs  = 0;   // how many ms into the chapter we were when paused
+let pausedScene      = -1;  // which scene was active when paused
+
 // Approx durations in seconds per scene (for timeline)
-const SCENE_DURATIONS = [22, 32, 32, 22, 35, 30, 32, 32, 32, 22];
+const SCENE_DURATIONS = [32, 40, 42, 32, 44, 40, 42, 42, 42, 32];
 
 // ═══ INIT ════════════════════════════════════════════════════════
 function init() {
@@ -1249,44 +1253,38 @@ function startTraining() {
 
 // ═══ PLAYBACK ════════════════════════════════════════════════════
 function togglePlay() {
-  if (isPlaying) { pauseTraining(); } else { playTraining(); }
-}
-
-function playTraining() {
-  isPlaying = true;
-  document.getElementById('play-btn').textContent = '⏸';
-  speakScene(currentScene);
+  if (isPlaying) { pauseTraining(); } else { resumeTraining(); }
 }
 
 function pauseTraining() {
   isPlaying = false;
+  // Save exactly how far into the chapter we are right now
+  pausedElapsedMs = Date.now() - utteranceStartMs;
+  pausedScene = currentScene;
   document.getElementById('play-btn').textContent = '▶';
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-  clearTimers();
+  clearInterval(timerInterval);
   setTTSIndicator(false);
 }
 
-function speakScene(idx) {
-  if (!window.speechSynthesis) {
-    // Fallback: just auto-advance by timer
-    simulatePlayback(idx);
-    return;
-  }
-  window.speechSynthesis.cancel();
-  clearTimers();
-
-  const script = CHAPTERS[idx].script;
-  updateCaption(script);
+function resumeTraining() {
+  isPlaying = true;
+  document.getElementById('play-btn').textContent = '⏸';
   setTTSIndicator(true);
+  if (pausedScene === currentScene && pausedElapsedMs > 0) {
+    // Resume mid-chapter from saved time position
+    speakFromMs(currentScene, pausedElapsedMs);
+  } else {
+    // Fresh start
+    pausedElapsedMs = 0;
+    speakScene(currentScene);
+  }
+}
 
-  utterance = new SpeechSynthesisUtterance(script);
-  utterance.rate = speechRate * 0.92; // Slightly slower = warmer, less rushed
-  utterance.pitch = 1.08;             // Slightly higher pitch = friendlier, more energetic
-  utterance.volume = 1.0;
-
-  // Voice priority: warm conversational voices first
+// ── Core voice builder (shared by both speakScene and speakFromMs) ──
+function getVoice() {
   const voices = window.speechSynthesis.getVoices();
-  const preferred =
+  return (
     voices.find(v => v.name === 'Samantha') ||
     voices.find(v => v.name === 'Karen') ||
     voices.find(v => v.name.includes('Aria')) ||
@@ -1295,74 +1293,141 @@ function speakScene(idx) {
     voices.find(v => v.name.includes('Google UK English Female')) ||
     voices.find(v => v.lang === 'en-US') ||
     voices.find(v => v.lang.startsWith('en')) ||
-    voices[0];
-  if (preferred) utterance.voice = preferred;
+    voices[0]
+  );
+}
 
-  utterance.onboundary = (e) => {
-    if (e.name === 'word') updateTimelineWhileSpeaking(idx, e.charIndex, script.length);
-  };
+function makeUtterance(text) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate   = speechRate * 0.92;
+  u.pitch  = 1.08;
+  u.volume = 1.0;
+  const v = getVoice();
+  if (v) u.voice = v;
+  return u;
+}
+
+// ── Speak full chapter from the beginning ──
+function speakScene(idx) {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (!window.speechSynthesis) { simulatePlayback(idx); return; }
+  clearTimers();
+
+  const script = CHAPTERS[idx].script;
+  updateCaption(script);
+  setTTSIndicator(true);
+
+  utterance = makeUtterance(script);
+  utteranceStartMs = Date.now();
 
   utterance.onend = () => {
+    if (!isPlaying) return;
+    pausedElapsedMs = 0;
+    pausedScene = -1;
     setTTSIndicator(false);
     completedScenes.add(idx);
     updateChapterDone(idx);
-    if (autoplayOn && isPlaying && idx < CHAPTERS.length - 1) {
-      setTimeout(() => { if(isPlaying) goToScene(idx + 1, true); }, 900);
+    if (autoplayOn && idx < CHAPTERS.length - 1) {
+      setTimeout(() => { if (isPlaying) goToScene(idx + 1, true); }, 900);
     } else if (idx === CHAPTERS.length - 1) {
-      pauseTraining();
+      isPlaying = false;
+      document.getElementById('play-btn').textContent = '▶';
+      setTTSIndicator(false);
+      clearInterval(timerInterval);
       updateCaption("🎉 Amazing work! You've completed all 10 chapters of QA Academy. You've got this!");
     }
   };
 
-  utterance.onerror = () => {
+  utterance.onerror = (e) => {
+    if (e.error === 'canceled' || e.error === 'interrupted' || !isPlaying) return;
     setTTSIndicator(false);
     simulatePlayback(idx);
   };
 
   window.speechSynthesis.speak(utterance);
-  startElapsedTimer(idx);
+  startProgressTimer(idx, 0); // start from 0ms elapsed
+}
+
+// ── Resume mid-chapter using saved elapsed time ──
+function speakFromMs(idx, fromMs) {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  clearTimers();
+
+  const fullScript = CHAPTERS[idx].script;
+  const sceneDurMs = SCENE_DURATIONS[idx] * 1000 / (speechRate * 0.92);
+
+  // Calculate which character to resume from based on time elapsed
+  const progress = Math.min(fromMs / sceneDurMs, 0.99);
+  let resumeChar = Math.floor(progress * fullScript.length);
+
+  // Walk back to nearest space so we don't cut mid-word
+  while (resumeChar > 0 && fullScript[resumeChar] !== ' ') resumeChar--;
+  const resumeScript = fullScript.slice(resumeChar).trimStart();
+
+  setTTSIndicator(true);
+
+  utterance = makeUtterance(resumeScript);
+  utteranceStartMs = Date.now() - fromMs; // back-date so timer continues correctly
+
+  utterance.onend = () => {
+    if (!isPlaying) return;
+    pausedElapsedMs = 0;
+    pausedScene = -1;
+    setTTSIndicator(false);
+    completedScenes.add(idx);
+    updateChapterDone(idx);
+    if (autoplayOn && idx < CHAPTERS.length - 1) {
+      setTimeout(() => { if (isPlaying) goToScene(idx + 1, true); }, 900);
+    } else if (idx === CHAPTERS.length - 1) {
+      isPlaying = false;
+      document.getElementById('play-btn').textContent = '▶';
+      setTTSIndicator(false);
+      clearInterval(timerInterval);
+      updateCaption("🎉 Amazing work! You've completed all 10 chapters of QA Academy. You've got this!");
+    }
+  };
+
+  utterance.onerror = (e) => {
+    if (e.error === 'canceled' || e.error === 'interrupted' || !isPlaying) return;
+    setTTSIndicator(false);
+  };
+
+  window.speechSynthesis.speak(utterance);
+  startProgressTimer(idx, fromMs); // timer continues from where bar was
 }
 
 function simulatePlayback(idx) {
-  // Fallback timer-based playback for browsers without TTS
-  const dur = (SCENE_DURATIONS[idx] / speechRate) * 1000;
-  startElapsedTimer(idx);
+  const dur = (SCENE_DURATIONS[idx] / (speechRate * 0.92)) * 1000;
+  utteranceStartMs = Date.now();
+  startProgressTimer(idx, 0);
   sceneTimer = setTimeout(() => {
+    if (!isPlaying) return;
     completedScenes.add(idx);
     updateChapterDone(idx);
-    if (autoplayOn && isPlaying && idx < CHAPTERS.length - 1) {
-      goToScene(idx + 1, true);
-    }
+    if (autoplayOn && idx < CHAPTERS.length - 1) goToScene(idx + 1, true);
   }, dur);
 }
 
-function startElapsedTimer(idx) {
+// ── Progress bar timer — runs entirely from Date.now() deltas ──
+function startProgressTimer(idx, offsetMs) {
   clearInterval(timerInterval);
-  const baseElapsed = SCENE_DURATIONS.slice(0, idx).reduce((a,b)=>a+b,0);
-  const sceneDur = SCENE_DURATIONS[idx];
-  const start = Date.now();
+  const baseElapsed  = SCENE_DURATIONS.slice(0, idx).reduce((a, b) => a + b, 0);
+  const sceneDurSecs = SCENE_DURATIONS[idx];
+  const timerStart   = Date.now();
 
   timerInterval = setInterval(() => {
-    const elapsed = Math.min((Date.now() - start) / 1000 / speechRate, sceneDur);
-    const total = baseElapsed + elapsed;
-    document.getElementById('time-current').textContent = formatTime(total);
-    const pct = Math.min((total / totalEstSecs) * 100, 100);
-    document.getElementById('timeline-progress').style.width = pct + '%';
-    document.getElementById('pct-label').textContent = Math.round(pct) + '%';
-    document.getElementById('progress-fill').style.width = pct + '%';
-  }, 200);
-}
-
-function updateTimelineWhileSpeaking(idx, charIdx, totalChars) {
-  const baseElapsed = SCENE_DURATIONS.slice(0, idx).reduce((a,b)=>a+b,0);
-  const sceneDur = SCENE_DURATIONS[idx];
-  const sceneProgress = charIdx / totalChars;
-  const total = baseElapsed + sceneDur * sceneProgress;
-  const pct = Math.min((total / totalEstSecs) * 100, 100);
-  document.getElementById('timeline-progress').style.width = pct + '%';
-  document.getElementById('pct-label').textContent = Math.round(pct) + '%';
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('time-current').textContent = formatTime(total);
+    if (!isPlaying) return;
+    const sceneElapsed = Math.min(
+      offsetMs / 1000 + (Date.now() - timerStart) / 1000,
+      sceneDurSecs
+    );
+    const total = baseElapsed + sceneElapsed;
+    const pct   = Math.min((total / totalEstSecs) * 100, 100);
+    document.getElementById('time-current').textContent        = formatTime(total);
+    document.getElementById('timeline-progress').style.width   = pct + '%';
+    document.getElementById('pct-label').textContent           = Math.round(pct) + '%';
+    document.getElementById('progress-fill').style.width       = pct + '%';
+  }, 150);
 }
 
 function clearTimers() {
@@ -1397,14 +1462,26 @@ function goToScene(idx, autoPlaying = false) {
   }
 }
 
-function nextScene() { 
-  pauseTraining();
-  goToScene(currentScene + 1); 
+function nextScene() {
+  isPlaying = false;
+  pausedElapsedMs = 0;
+  pausedScene = -1;
+  document.getElementById('play-btn').textContent = '▶';
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  clearTimers();
+  setTTSIndicator(false);
+  goToScene(currentScene + 1);
 }
 
-function prevScene() { 
-  pauseTraining();
-  goToScene(currentScene - 1); 
+function prevScene() {
+  isPlaying = false;
+  pausedElapsedMs = 0;
+  pausedScene = -1;
+  document.getElementById('play-btn').textContent = '▶';
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  clearTimers();
+  setTTSIndicator(false);
+  goToScene(currentScene - 1);
 }
 
 function seekTimeline(e) {
